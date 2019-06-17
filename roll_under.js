@@ -21,6 +21,14 @@ async function sleep(sleepTime, fn, ...args) {
   return fn && fn(...args);
 }
 
+function convertToHex64(decNum) {
+  hexNum = decNum.toString(16);
+  while (hexNum.length < 64) {
+    hexNum = "0" + hexNum;
+  }
+  return hexNum;
+}
+
 async function betUnder(betValue, betNumber=48) {
   console.log(`Submitting Bet: (number, value) =`, betNumber, betValue);
 
@@ -36,7 +44,7 @@ async function betUnder(betValue, betNumber=48) {
       gas: 200000,
       gasPrice: `${Math.min(currentGasPrice + 1500000000, 10000000000)}`,
       value: `${web3.utils.toWei(`${betValue}`, 'ether')}`,
-      data: `0xdc6dd1520000000000000000000000000000000000000000000000000000000000000030`,   // Num = 48
+      data: `0xdc6dd152` + convertToHex64(betNumber),
     }, privateKey);
 
     let pKey = new Buffer(privateKey, 'hex');
@@ -103,12 +111,12 @@ async function getBetResult(betID) {
 
 let BET_AMOUNT = [0, 0.2, 0.25, 0.42, 0.8, 1.52];
 
-async function startBetting(numBet=100) {
+async function startBetting(numBet, betNumber) {
   let lossIndex = 0;
 
   for (let i = 1; i <= numBet; i += 1) {
       if (lossIndex == BET_AMOUNT.length) lossIndex = 0;
-      let betTxnHash = await betUnder(BET_AMOUNT[lossIndex+1]);
+      let betTxnHash = await betUnder(BET_AMOUNT[lossIndex+1], betNumber);
       let betId = await getBetId(betTxnHash);
       let {bet_value, dice_result, status} = await getBetResult(betId);
 
@@ -162,7 +170,7 @@ async function startListening() {
 }
 
 if (process.argv[1].includes('roll_under.js')) {
-  // node roll_under.js
+  // node roll_under.js <numBets> <betNumber>
   startListening()
-  startBetting()
+  startBetting(parseInt(process.argv[2]), parseInt(process.argv[3]))
 }
