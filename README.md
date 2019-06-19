@@ -13,7 +13,7 @@ npm install
 
 ### Run
 * Config your address and nodes in `.env`
-* Generate Ethereum Accounts
+* Generate Ethereum Accounts (if needed)
 ```
 node gen.js <number_of_accounts>
 >>> E.g node gen.js 1
